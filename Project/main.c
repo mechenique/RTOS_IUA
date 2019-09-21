@@ -108,21 +108,6 @@ mission critical applications that require provable dependability.
 
 #define mainTIMER_TEST_PERIOD      ( 50 )
 
-
-/*
-* Prototypes for the standard FreeRTOS callback/hook functions implemented
-* within this file.
-*/
-void vApplicationMallocFailedHook( void );
-void vApplicationIdleHook( void );
-void vApplicationTickHook( void );
-
-/* Task function to check demo status. */
-static void prvCheckTask( void *pvParameters );
-
-/* The variable into which error messages are latched. */
-static char *pcStatusMessage = "OK";
-
 /* Custom Tasks for assignments */
 void vTask1( void *pvParameters );
 void vTask2( void *pvParameters );
@@ -134,48 +119,9 @@ void vTask2( void *pvParameters );
 
 int main ( void )
 {
-  /* Start the check task as described at the top of this file. */
-  xTaskCreate( prvCheckTask, "Check", configMINIMAL_STACK_SIZE, NULL, \
-                                              mainCHECK_TASK_PRIORITY, NULL );
-
   /* Create Task 1 and 2. */
   xTaskCreate( vTask1, "Task1", task1StackSize, NULL, task1Priority, NULL );
   xTaskCreate( vTask2, "Task2", task2StackSize, NULL, task2Priority, NULL );
-
-  /* Create the standard demo tasks. */
-  vStartIntegerMathTasks( mainINTEGER_TASK_PRIORITY );
-  vStartMathTasks( mainFLOP_TASK_PRIORITY );
-  vStartBlockingQueueTasks( mainBLOCK_Q_PRIORITY );
-  vStartPolledQueueTasks( mainQUEUE_POLL_PRIORITY );
-  vStartSemaphoreTasks( mainSEM_TEST_PRIORITY );
-  vStartDynamicPriorityTasks();
-  vCreateBlockTimeTasks();
-  vStartGenericQueueTasks( mainGEN_QUEUE_TASK_PRIORITY );
-  vStartQueuePeekTasks();
-  vStartCountingSemaphoreTasks();
-  vStartRecursiveMutexTasks();
-
-  vCreateAbortDelayTasks();
-  vStartEventGroupTasks();
-  vStartInterruptSemaphoreTasks();
-  vStartQueueSetTasks();
-  vStartQueueSetPollingTask();
-  vStartQueueOverwriteTask( mainQUEUE_OVERWRITE_PRIORITY );
-  vStartTaskNotifyTask();
-
-  #if( configUSE_PREEMPTION != 0  )
-  {
-    /* Don't expect these tasks to pass when preemption is not used. */
-    vStartTimerDemoTask( mainTIMER_TEST_PERIOD );
-  }
-  #endif
-
-  /* The suicide tasks must be created last as they need to know how many
-  tasks were running prior to their creation.  This then allows them to
-  ascertain whether or not the correct/expected number of tasks are running at
-  any given time. */
-  vCreateSuicidalTasks( mainCREATOR_TASK_PRIORITY );
-
   /* Start the scheduler itself. */
   vTaskStartScheduler();
 
@@ -226,4 +172,3 @@ void vTask2( void *pvParameters )
     fflush( stdout );
   }
 }
-
