@@ -115,13 +115,15 @@ void vTask2( void *pvParameters );
 #define task2StackSize 100
 #define task1Priority 1
 #define task2Priority 1
+TaskHandle_t Tarea1;
+TaskHandle_t Tarea2;
 /*-----------------------------------------------------------*/
 
 int main ( void )
 {
   /* Create Task 1 and 2. */
-  xTaskCreate( vTask1, "Task1", task1StackSize, NULL, task1Priority, NULL );
-  xTaskCreate( vTask2, "Task2", task2StackSize, NULL, task2Priority, NULL );
+  xTaskCreate( vTask1, "Task1", task1StackSize, NULL, task1Priority, &Tarea1 );
+  xTaskCreate( vTask2, "Task2", task2StackSize, NULL, task2Priority, &Tarea2 );
   /* Start the scheduler itself. */
   vTaskStartScheduler();
 
@@ -133,6 +135,16 @@ int main ( void )
 
 void vTask1( void *pvParameters )
 {
+  eTaskState var;
+  char strRTOSstate [250];
+  char strTaskState[][25]={
+  "Running" ,	
+	"Ready",			
+	"Blocked",		
+	"Suspended",		
+	"Deleted",		
+	"Invalid"
+  };
   TickType_t xNextWakeTime;
   const TickType_t xCycleFrequency = pdMS_TO_TICKS( 100UL );
 
@@ -146,9 +158,13 @@ void vTask1( void *pvParameters )
   {
     /* Place this task in the blocked state until it is time to run again. */
     vTaskDelayUntil( &xNextWakeTime, xCycleFrequency );
-
-    printf("This is task 1\n");
+  var =  eTaskGetState(Tarea1);
+    printf("La tarea 1 esta en estado %s\n",strTaskState[var]);
+  var =  eTaskGetState(Tarea2);
+    printf("La tarea 2 esta en estado %s\n",strTaskState[var]);
     fflush( stdout );
+    vTaskList(strRTOSstate);
+    printf("%s\n",strRTOSstate);
   }
 }
 
@@ -168,6 +184,7 @@ void vTask2( void *pvParameters )
     /* Place this task in the blocked state until it is time to run again. */
     vTaskDelayUntil( &xNextWakeTime, xCycleFrequency );
 
+ 
     printf("This is task 2\n");
     fflush( stdout );
   }
