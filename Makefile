@@ -1,4 +1,4 @@
-######## Build options ########
+######## Build options #########
 
 verbose = 0
 
@@ -31,27 +31,27 @@ C_FILES			+= heap_3.c
 C_FILES			+= port.c
 
 # Demo Objects
-C_FILES			+= blocktim.c
-C_FILES			+= countsem.c
-C_FILES			+= GenQTest.c
-C_FILES			+= QPeek.c
-C_FILES			+= recmutex.c
-C_FILES			+= BlockQ.c
-C_FILES			+= death.c
-C_FILES			+= dynamic.c
-C_FILES			+= flop.c
-C_FILES			+= integer.c
-C_FILES			+= PollQ.c
-C_FILES			+= semtest.c
+#C_FILES			+= blocktim.c
+#C_FILES			+= countsem.c
+#C_FILES			+= GenQTest.c
+#C_FILES			+= QPeek.c
+#C_FILES			+= recmutex.c
+#C_FILES			+= BlockQ.c
+#C_FILES			+= death.c
+#C_FILES			+= dynamic.c
+#C_FILES			+= flop.c
+#C_FILES			+= integer.c
+#C_FILES			+= PollQ.c
+#C_FILES			+= semtest.c
 
-C_FILES			+= AbortDelay.c
-C_FILES			+= EventGroupsDemo.c
-C_FILES			+= IntSemTest.c
-C_FILES			+= QueueSet.c
-C_FILES			+= QueueSetPolling.c
-C_FILES			+= QueueOverwrite.c
-C_FILES			+= TaskNotify.c
-C_FILES			+= TimerDemo.c
+#C_FILES			+= AbortDelay.c
+#C_FILES			+= EventGroupsDemo.c
+#C_FILES			+= IntSemTest.c
+#C_FILES			+= QueueSet.c
+#C_FILES			+= QueueSetPolling.c
+#C_FILES			+= QueueOverwrite.c
+#C_FILES			+= TaskNotify.c
+#C_FILES			+= TimerDemo.c
 
 # Main Object
 C_FILES			+= main.c
@@ -59,7 +59,7 @@ C_FILES			+= main.c
 # Include Paths
 INCLUDES        += -I$(SRCROOT)/Source/include
 INCLUDES        += -I$(SRCROOT)/Source/portable/GCC/POSIX/
-INCLUDES        += -I$(SRCROOT)/Demo/include
+#INCLUDES        += -I$(SRCROOT)/Demo/include
 INCLUDES        += -I$(SRCROOT)/Project
 
 # Generate OBJS names
