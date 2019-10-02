@@ -92,7 +92,7 @@ mission critical applications that require provable dependability.
 
 #include "FreeRTOS.h"
 #include "task.h"
-
+#include "queue.h"
 
 
 /* Priorities at which the tasks are created. */
@@ -109,21 +109,68 @@ mission critical applications that require provable dependability.
 #define mainTIMER_TEST_PERIOD      ( 50 )
 
 /* Custom Tasks for assignments */
+void vTask5( void *pvParameters );
 void vTask1( void *pvParameters );
 void vTask2( void *pvParameters );
-#define task1StackSize 1000
+void vTask3( void *pvParameters );
+void vTask4( void *pvParameters );
+#define task5StackSize 1000
+#define task1StackSize 100
 #define task2StackSize 100
+#define task3StackSize 100
+#define task4StackSize 100
+#define task5Priority 1
 #define task1Priority 1
 #define task2Priority 1
+#define task3Priority 1
+#define task4Priority 2  //tarea que recibe de la cola
+TaskHandle_t Tarea5;
 TaskHandle_t Tarea1;
 TaskHandle_t Tarea2;
+TaskHandle_t Tarea3;
+TaskHandle_t Tarea4;
+QueueHandle_t xQueue;
+char messageT1 [20]="InitT1";
+int counterT1=0;
+//char messageT2 [100];
+//char messageT3 [100];
+
+struct datos_task
+{
+      /* TaskFunction_t pvTask Es un function pointer, no un array de char!
+      TaskFunction_t es un typedef que equivale a definir void (*pvTask)(void *)
+      */
+  TaskFunction_t pvTask;
+  char sDescr[10];
+  int iStack;
+  char cMessage[50];
+  int iPriority;  
+  TaskHandle_t HTarea;
+  int iDelay;
+};
+struct datos_task config_tarea;
 /*-----------------------------------------------------------*/
 
 int main ( void )
 {
+  
+  //struct datos_task *p = &config_tarea;
+
+  /*
+  Hay que inicializar el puntero de funcion de la siguiente manera donde vTask5
+  es el nombre de la funcion definida en el prototipo de la funcion
+  
+  void vTask5( void *pvParameters );
+  */
+  config_tarea.pvTask = &vTask5;
+  
+  config_tarea.iDelay=250;
+  sprintf(config_tarea.sDescr,"Task5");
+  config_tarea.iPriority=1; 
   /* Create Task 1 and 2. */
-  xTaskCreate( vTask1, "Task1", task1StackSize, NULL, task1Priority, &Tarea1 );
-  xTaskCreate( vTask2, "Task2", task2StackSize, NULL, task2Priority, &Tarea2 );
+  //printf("el nombre de la tarea es %s\r\n",config_tarea.sName);
+  
+  xTaskCreate(config_tarea.pvTask ,config_tarea.sDescr, config_tarea.iStack, NULL, config_tarea.iPriority, &config_tarea.HTarea );
   /* Start the scheduler itself. */
   vTaskStartScheduler();
 
@@ -133,8 +180,10 @@ int main ( void )
 }
 /*-----------------------------------------------------------*/
 
-void vTask1( void *pvParameters )
+void vTask5( void *pvParameters )
 {
+  
+  
   eTaskState var;
   char strRTOSstate [250];
   char strTaskState[][25]={
@@ -146,28 +195,75 @@ void vTask1( void *pvParameters )
 	"Invalid"
   };
   TickType_t xNextWakeTime;
-  const TickType_t xCycleFrequency = pdMS_TO_TICKS( 100UL );
+  const TickType_t xCycleFrequency = pdMS_TO_TICKS( 1000 );
 
   /* Just to remove compiler warning. */
   ( void ) pvParameters;
 
   /* Initialise xNextWakeTime - this only needs to be done once. */
   xNextWakeTime = xTaskGetTickCount();
-
+  xQueue = xQueueCreate (50,50);
+  if (xQueue !=NULL)
+  {
+  xTaskCreate( vTask1, "Task1", task1StackSize, messageT1, task1Priority, &Tarea1 );
+  //xTaskCreate( vTask2, "Task2", task2StackSize, NULL, task2Priority, &Tarea2 );
+  //xTaskCreate( vTask3, "Task3", task3StackSize, NULL, task3Priority, &Tarea3 );
+  xTaskCreate( vTask4, "Task4", task4StackSize, NULL, task4Priority, &Tarea4 );  
+  //vTaskStartScheduler();
+  }
   for( ;; )
   {
     /* Place this task in the blocked state until it is time to run again. */
-    vTaskDelayUntil( &xNextWakeTime, xCycleFrequency );
+    
+    printf("This is task 5 - Creator\r\n");
+    
+  
+  var =  eTaskGetState(config_tarea.HTarea);
+    printf("La tarea 5 esta en estado %s\n",strTaskState[var]);
   var =  eTaskGetState(Tarea1);
     printf("La tarea 1 esta en estado %s\n",strTaskState[var]);
-  var =  eTaskGetState(Tarea2);
+ /* var =  eTaskGetState(Tarea2);
     printf("La tarea 2 esta en estado %s\n",strTaskState[var]);
+  var =  eTaskGetState(Tarea3);
+    printf("La tarea 3 esta en estado %s\n",strTaskState[var]);
+ */ var =  eTaskGetState(Tarea4);
+    printf("La tarea 4 esta en estado %s\n",strTaskState[var]);
+
+    vTaskDelayUntil( &xNextWakeTime, xCycleFrequency );
     fflush( stdout );
+    
     vTaskList(strRTOSstate);
     printf("%s\n",strRTOSstate);
   }
 }
 
+void vTask1( void *pvParameters )
+{
+  
+  char *lValuetosend;
+  BaseType_t xStatus;
+  lValuetosend = (char*) pvParameters;
+  TickType_t xNextWakeTime;
+  const TickType_t xCycleFrequency = pdMS_TO_TICKS( 100 );
+
+  /* Just to remove compiler warning. */
+  ( void ) pvParameters;
+
+  /* Initialise xNextWakeTime - this only needs to be done once. */
+  xNextWakeTime = xTaskGetTickCount();
+  //sprintf(lValuetosend,"hola");
+  for( ;; )
+  {
+    /* Place this task in the blocked state until it is time to run again. */
+    vTaskDelayUntil( &xNextWakeTime, xCycleFrequency );
+    xStatus=xQueueSendToBack (xQueue,(void *)lValuetosend,0);
+    if (xStatus!=pdPASS) printf("Could not send to queue. \r\n");
+    printf("This is task 1\r\n");
+    sprintf(messageT1,"T1 - Counter: %i\r\n",counterT1);
+    counterT1++;
+    fflush( stdout );
+  }
+}
 void vTask2( void *pvParameters )
 {
   TickType_t xNextWakeTime;
@@ -186,6 +282,58 @@ void vTask2( void *pvParameters )
 
  
     printf("This is task 2\n");
+    fflush( stdout );
+  }
+}
+void vTask3( void *pvParameters )
+{
+  TickType_t xNextWakeTime;
+  const TickType_t xCycleFrequency = pdMS_TO_TICKS( 100UL );
+
+  /* Just to remove compiler warning. */
+  ( void ) pvParameters;
+
+  /* Initialise xNextWakeTime - this only needs to be done once. */
+  xNextWakeTime = xTaskGetTickCount();
+
+  for( ;; )
+  {
+    /* Place this task in the blocked state until it is time to run again. */
+    vTaskDelayUntil( &xNextWakeTime, xCycleFrequency );
+
+ 
+    printf("This is task 3\n");
+    fflush( stdout );
+  }
+}
+
+void vTask4( void *pvParameters )
+{
+  char lReceivedValue[20];
+  //char RxMessage[20];
+  BaseType_t xStatus;
+
+  //TickType_t xNextWakeTime;
+  const TickType_t xCycleFrequency = pdMS_TO_TICKS( 100UL );
+
+  /* Just to remove compiler warning. */
+  ( void ) pvParameters;
+
+  /* Initialise xNextWakeTime - this only needs to be done once. */
+  //xNextWakeTime = xTaskGetTickCount();
+
+  for( ;; )
+  {
+    if (uxQueueMessagesWaiting (xQueue)!=0)
+   {
+    printf("Queue should have been empty!\r\n"); 
+   }
+   xStatus = xQueueReceive (xQueue, (void *)lReceivedValue, xCycleFrequency);
+   if (xStatus==pdPASS)
+   {printf ("Received: %s",lReceivedValue); }
+    /* Place this task in the blocked state until it is time to run again. */
+    //vTaskDelayUntil( &xNextWakeTime, xCycleFrequency );
+    printf("This is task 4\n");
     fflush( stdout );
   }
 }
