@@ -137,7 +137,10 @@ int counterT1=0;
 
 struct datos_task
 {
-  char sName[10];
+      /* TaskFunction_t pvTask Es un function pointer, no un array de char!
+      TaskFunction_t es un typedef que equivale a definir void (*pvTask)(void *)
+      */
+  TaskFunction_t pvTask;
   char sDescr[10];
   int iStack;
   char cMessage[50];
@@ -152,14 +155,22 @@ int main ( void )
 {
   
   //struct datos_task *p = &config_tarea;
-  sprintf(config_tarea.sName,"vTask5");
+
+  /*
+  Hay que inicializar el puntero de funcion de la siguiente manera donde vTask5
+  es el nombre de la funcion definida en el prototipo de la funcion
+  
+  void vTask5( void *pvParameters );
+  */
+  config_tarea.pvTask = &vTask5;
+  
   config_tarea.iDelay=250;
   sprintf(config_tarea.sDescr,"Task5");
   config_tarea.iPriority=1; 
   /* Create Task 1 and 2. */
   //printf("el nombre de la tarea es %s\r\n",config_tarea.sName);
-  //(void *)config_tarea.sName
-  xTaskCreate( ,config_tarea.sDescr, config_tarea.iStack, NULL, config_tarea.iPriority, &config_tarea.HTarea );
+  
+  xTaskCreate(config_tarea.pvTask ,config_tarea.sDescr, config_tarea.iStack, NULL, config_tarea.iPriority, &config_tarea.HTarea );
   /* Start the scheduler itself. */
   vTaskStartScheduler();
 
