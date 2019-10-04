@@ -114,68 +114,33 @@ void vTask1( void *pvParameters );
 void vTask2( void *pvParameters );
 void vTask3( void *pvParameters );
 void vTask4( void *pvParameters );
-
+#define task5StackSize 1000
+#define task1StackSize 100
+#define task2StackSize 100
+#define task3StackSize 100
+#define task4StackSize 100
+#define task5Priority 1
+#define task1Priority 1
+#define task2Priority 1
+#define task3Priority 1
+#define task4Priority 2  //tarea que recibe de la cola
+TaskHandle_t Tarea5;
+TaskHandle_t Tarea1;
+TaskHandle_t Tarea2;
+TaskHandle_t Tarea3;
+TaskHandle_t Tarea4;
 QueueHandle_t xQueue;
+char messageT1 [20]="InitT1";
+int counterT1=0;
+//char messageT2 [100];
+//char messageT3 [100];
 
-struct datos_task
-{
-      /* TaskFunction_t pvTask Es un function pointer, no un array de char!
-      TaskFunction_t es un typedef que equivale a definir void (*pvTask)(void *)
-      */
-  TaskFunction_t pvTask;
-  char sDescr[10];
-  int iStack;
-  char cMessage[50];
-  int iPriority;  
-  TaskHandle_t HTarea;
-  int iDelay;
-  int iCounter;
-};
-struct datos_task config_tarea[6];
 /*-----------------------------------------------------------*/
 
 int main ( void )
 {
-  
-  //struct datos_task *p = &config_tarea;
-
-  /*
-  Hay que inicializar el puntero de funcion de la siguiente manera donde vTask5
-  es el nombre de la funcion definida en el prototipo de la funcion
-  
-  void vTask5( void *pvParameters );
-  */
-  config_tarea[1].pvTask = &vTask1;
-  config_tarea[1].iDelay=250;
-  sprintf(config_tarea[1].sDescr,"Task1");
-  config_tarea[1].iPriority=1;
-  sprintf(config_tarea[1].cMessage,"Init - T1"); 
-
-  config_tarea[2].pvTask = &vTask2;
-  config_tarea[2].iDelay=250;
-  sprintf(config_tarea[2].sDescr,"Task2");
-  config_tarea[2].iPriority=1;
-  sprintf(config_tarea[2].cMessage,"Init - T2"); 
-
-  config_tarea[3].pvTask = &vTask3;
-  config_tarea[3].iDelay=250;
-  sprintf(config_tarea[3].sDescr,"Task3");
-  config_tarea[3].iPriority=1;
-  sprintf(config_tarea[3].cMessage,"Init - T3"); 
- 
- 
-  config_tarea[4].pvTask = &vTask4;
-  config_tarea[4].iDelay=250;
-  sprintf(config_tarea[4].sDescr,"Task4");
-  config_tarea[4].iPriority=2;
-  sprintf(config_tarea[4].cMessage,"Init - T4"); 
-
-  config_tarea[5].pvTask = &vTask5;
-  config_tarea[5].iDelay=250;
-  sprintf(config_tarea[5].sDescr,"Task5");
-  config_tarea[5].iPriority=1; 
-  
-  xTaskCreate(config_tarea[5].pvTask ,config_tarea[5].sDescr, config_tarea[5].iStack, NULL, config_tarea[5].iPriority, &config_tarea[5].HTarea );
+  /* Create Task 1 and 2. */
+  xTaskCreate( vTask5, "Task5", task5StackSize, NULL, task5Priority, &Tarea5 );
   /* Start the scheduler itself. */
   vTaskStartScheduler();
 
@@ -200,7 +165,7 @@ void vTask5( void *pvParameters )
 	"Invalid"
   };
   TickType_t xNextWakeTime;
-  const TickType_t xCycleFrequency = pdMS_TO_TICKS( 1500 );
+  const TickType_t xCycleFrequency = pdMS_TO_TICKS( 1000 );
 
   /* Just to remove compiler warning. */
   ( void ) pvParameters;
@@ -210,34 +175,35 @@ void vTask5( void *pvParameters )
   xQueue = xQueueCreate (50,50);
   if (xQueue !=NULL)
   {
-  xTaskCreate(config_tarea[1].pvTask ,config_tarea[1].sDescr, config_tarea[1].iStack, config_tarea[1].cMessage, config_tarea[1].iPriority, &config_tarea[1].HTarea ); 
-  xTaskCreate(config_tarea[2].pvTask ,config_tarea[2].sDescr, config_tarea[2].iStack, config_tarea[2].cMessage, config_tarea[2].iPriority, &config_tarea[2].HTarea ); 
-  xTaskCreate(config_tarea[3].pvTask ,config_tarea[3].sDescr, config_tarea[3].iStack, config_tarea[3].cMessage, config_tarea[3].iPriority, &config_tarea[3].HTarea ); 
-  xTaskCreate(config_tarea[4].pvTask ,config_tarea[4].sDescr, config_tarea[4].iStack, config_tarea[4].cMessage, config_tarea[4].iPriority, &config_tarea[4].HTarea ); 
-  
+  xTaskCreate( vTask1, "Task1", task1StackSize, messageT1, task1Priority, &Tarea1 );
+  //xTaskCreate( vTask2, "Task2", task2StackSize, NULL, task2Priority, &Tarea2 );
+  //xTaskCreate( vTask3, "Task3", task3StackSize, NULL, task3Priority, &Tarea3 );
+  xTaskCreate( vTask4, "Task4", task4StackSize, NULL, task4Priority, &Tarea4 );  
+  //vTaskStartScheduler();
   }
   for( ;; )
   {
     /* Place this task in the blocked state until it is time to run again. */
+    
+    printf("This is task 5 - Creator\r\n");
+    
   
-
-  var =  eTaskGetState(config_tarea[1].HTarea);
-    printf("La tarea 1 esta en estado %s\n",strTaskState[var]);
-  var =  eTaskGetState(config_tarea[2].HTarea);
-    printf("La tarea 2 esta en estado %s\n",strTaskState[var]);
-  var =  eTaskGetState(config_tarea[3].HTarea);
-    printf("La tarea 3 esta en estado %s\n",strTaskState[var]);
-  var =  eTaskGetState(config_tarea[4].HTarea);
-    printf("La tarea 4 esta en estado %s\n",strTaskState[var]);
-  var =  eTaskGetState(config_tarea[5].HTarea);
+  var =  eTaskGetState(Tarea5);
     printf("La tarea 5 esta en estado %s\n",strTaskState[var]);
-    vTaskList(strRTOSstate);
-    printf("%s\n",strRTOSstate);
+  var =  eTaskGetState(Tarea1);
+    printf("La tarea 1 esta en estado %s\n",strTaskState[var]);
+ /* var =  eTaskGetState(Tarea2);
+    printf("La tarea 2 esta en estado %s\n",strTaskState[var]);
+  var =  eTaskGetState(Tarea3);
+    printf("La tarea 3 esta en estado %s\n",strTaskState[var]);
+ */ var =  eTaskGetState(Tarea4);
+    printf("La tarea 4 esta en estado %s\n",strTaskState[var]);
 
     vTaskDelayUntil( &xNextWakeTime, xCycleFrequency );
     fflush( stdout );
     
-
+    vTaskList(strRTOSstate);
+    printf("%s\n",strRTOSstate);
   }
 }
 
@@ -262,61 +228,51 @@ void vTask1( void *pvParameters )
     vTaskDelayUntil( &xNextWakeTime, xCycleFrequency );
     xStatus=xQueueSendToBack (xQueue,(void *)lValuetosend,0);
     if (xStatus!=pdPASS) printf("Could not send to queue. \r\n");
-    //printf("This is task 1\r\n");
-    sprintf(config_tarea[1].cMessage,"T1 - Counter: %i\r\n",config_tarea[1].iCounter);
-    config_tarea[1].iCounter++;
+    printf("This is task 1\r\n");
+    sprintf(messageT1,"T1 - Counter: %i\r\n",counterT1);
+    counterT1++;
     fflush( stdout );
   }
 }
 void vTask2( void *pvParameters )
 {
-char *lValuetosend;
-  BaseType_t xStatus;
-  lValuetosend = (char*) pvParameters;
   TickType_t xNextWakeTime;
-  const TickType_t xCycleFrequency = pdMS_TO_TICKS( 100 );
+  const TickType_t xCycleFrequency = pdMS_TO_TICKS( 100UL );
 
   /* Just to remove compiler warning. */
   ( void ) pvParameters;
 
   /* Initialise xNextWakeTime - this only needs to be done once. */
   xNextWakeTime = xTaskGetTickCount();
-  //sprintf(lValuetosend,"hola");
+
   for( ;; )
   {
     /* Place this task in the blocked state until it is time to run again. */
     vTaskDelayUntil( &xNextWakeTime, xCycleFrequency );
-    xStatus=xQueueSendToBack (xQueue,(void *)lValuetosend,0);
-    if (xStatus!=pdPASS) printf("Could not send to queue. \r\n");
-    //printf("This is task 2\r\n");
-    sprintf(config_tarea[2].cMessage,"T2 - Counter: %i\r\n",config_tarea[2].iCounter);
-    config_tarea[2].iCounter++;
+
+ 
+    printf("This is task 2\n");
     fflush( stdout );
   }
 }
 void vTask3( void *pvParameters )
 {
- char *lValuetosend;
-  BaseType_t xStatus;
-  lValuetosend = (char*) pvParameters;
   TickType_t xNextWakeTime;
-  const TickType_t xCycleFrequency = pdMS_TO_TICKS( 100 );
+  const TickType_t xCycleFrequency = pdMS_TO_TICKS( 100UL );
 
   /* Just to remove compiler warning. */
   ( void ) pvParameters;
 
   /* Initialise xNextWakeTime - this only needs to be done once. */
   xNextWakeTime = xTaskGetTickCount();
-  //sprintf(lValuetosend,"hola");
+
   for( ;; )
   {
     /* Place this task in the blocked state until it is time to run again. */
     vTaskDelayUntil( &xNextWakeTime, xCycleFrequency );
-    xStatus=xQueueSendToBack (xQueue,(void *)lValuetosend,0);
-    if (xStatus!=pdPASS) printf("Could not send to queue. \r\n");
-    //printf("This is task 3\r\n");
-    sprintf(config_tarea[3].cMessage,"T3 - Counter: %i\r\n",config_tarea[3].iCounter);
-    config_tarea[3].iCounter++;
+
+ 
+    printf("This is task 3\n");
     fflush( stdout );
   }
 }
@@ -344,11 +300,10 @@ void vTask4( void *pvParameters )
    }
    xStatus = xQueueReceive (xQueue, (void *)lReceivedValue, xCycleFrequency);
    if (xStatus==pdPASS)
-   {
-     printf ("Received: %s",lReceivedValue); }
+   {printf ("Received: %s",lReceivedValue); }
     /* Place this task in the blocked state until it is time to run again. */
     //vTaskDelayUntil( &xNextWakeTime, xCycleFrequency );
-    //printf("This is task 4\n");
+    printf("This is task 4\n");
     fflush( stdout );
   }
 }
